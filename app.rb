@@ -5,8 +5,6 @@ require "config_env"
 require 'rack-flash'
 require_relative './model/user.rb'
 require_relative './helpers/creditcard_helpers.rb'
-
-require_relative './model/credit_card.rb'
 require 'rack/ssl-enforcer'
 
 # Credit Card Web Service
