@@ -100,32 +100,32 @@ class CreditCardAPI < Sinatra::Base
     logger.info('FEATURES')
     'TO date, services offered include<br>' \
     ' GET api/v1/credit_card/validate?card_number=[card number]<br>' \
-    ' GET <a href="/api/v1/credit_card/everything"> Numbers </a> '
+    #' GET <a href="/api/v1/credit_card/everything"> Numbers </a> '
   end
 
   get '/api/v1/credit_card/validate' do
-    card = CreditCard.new(number: params[:card_number])
-    {"Card" => params[:card_number], "validated" => card.validate_checksum}.to_json
+    #card = CreditCard.new(number: params[:card_number])
+    #{"Card" => params[:card_number], "validated" => card.validate_checksum}.to_json
   end
 
-  post '/api/v1/credit_card' do
-    card_json = JSON.parse(request.body.read)
-    begin
-      number = card_json['number']
-      credit_network = card_json['credit_network']
-      expiration_date = card_json['expiration_date']
-      owner = card_json['owner']
-      card = CreditCard.new(number: number, credit_network: credit_network,
-                            owner: owner, expiration_date: expiration_date)
-      halt 400 unless card.validate_checksum
-      status 201 if card.save
-    rescue
-      halt 410
-    end
-  end
+  #post '/api/v1/credit_card' do
+  #  card_json = JSON.parse(request.body.read)
+  #  begin
+  #    number = card_json['number']
+  #    credit_network = card_json['credit_network']
+  #    expiration_date = card_json['expiration_date']
+  #    owner = card_json['owner']
+  #    card = CreditCard.new(number: number, credit_network: credit_network,
+  #                          owner: owner, expiration_date: expiration_date)
+  #    halt 400 unless card.validate_checksum
+  #    status 201 if card.save
+  #  rescue
+  #    halt 410
+  #  end
+  #end
 
   get '/api/v1/credit_card/everything' do
-    haml :everything, locals: {result: CreditCard.all.map(&:to_s)    }
+    haml :everything#, locals: {result: CreditCard.all.map(&:to_s)    }
   end
 
 end
