@@ -21,6 +21,7 @@ gem 'jwt'
 gem 'pony'
 
 gem 'rack-ssl-enforcer'
+gem 'httparty'
 
 group :development do
   gem 'sqlite3'

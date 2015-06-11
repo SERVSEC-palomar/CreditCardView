@@ -1,6 +1,20 @@
-%p
-  -##{result} 
-  -#%br
-  -#Back to 
-  -#%a{ href: '/' }
-   -# Index
+%h2 Cards Entered
+
+-if @cc
+  %table
+    %tbody
+      %tr
+        %th Name
+        %th Number
+        %th Credit Card Network
+        %th Expiration Date
+      -@cc.each do |card|
+        %tr
+          %td
+            = card['owner']
+          %td
+            = card['encrypted_number']
+          %td
+            = card['credit_network']
+          %td
+            = card['expiration_date']

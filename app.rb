@@ -6,10 +6,13 @@ require 'rack-flash'
 require_relative './model/user.rb'
 require_relative './helpers/creditcard_helpers.rb'
 require 'rack/ssl-enforcer'
+require 'httparty'
 
 # Credit Card Web Service
 class CreditCardAPI < Sinatra::Base
   include CreditCardHelper
+
+  API_URL_BASE = 'https://palomar-creditcardapi.herokuapp.com/'
 
   enable :logging
 
@@ -122,28 +125,52 @@ class CreditCardAPI < Sinatra::Base
     #' GET <a href="/api/v1/credit_card/everything"> Numbers </a> '
   end
 
-  get '/api/v1/credit_card/validate' do
+  get '/validate', :auth => [:user] do
+    num = params['card_number']
+    url = "#{API_URL_BASE}/api/v1/credit_card/validate/#{card_number}"
+    @card = HTTParty.get (url)
+    @valid = JSON.parse(@card)
+    haml :validate
     #card = CreditCard.new(number: params[:card_number])
     #{"Card" => params[:card_number], "validated" => card.validate_checksum}.to_json
   end
 
-  #post '/api/v1/credit_card' do
-  #  card_json = JSON.parse(request.body.read)
-  #  begin
-  #    number = card_json['number']
-  #    credit_network = card_json['credit_network']
-  #    expiration_date = card_json['expiration_date']
-  #    owner = card_json['owner']
-  #    card = CreditCard.new(number: number, credit_network: credit_network,
-  #                          owner: owner, expiration_date: expiration_date)
-  #    halt 400 unless card.validate_checksum
-  #    status 201 if card.save
-  #  rescue
-  #    halt 410
-  #  end
-  #end
+
+#####   ADDing Card
+
+  get '/add', :auth => [:user] do
+    haml :add_creditcard
+  end
+
+  post '/add_creditcard', auth: [:user] do
+    #card_json = JSON.parse(request.body.read)
+    begin
+      body = {
+        'user_id' => @current_user.id,
+        'number'  => params[:number],
+        'expiration_date' => params[:expiration_date],
+        'owner' => params[:owner],
+        'credit_network'  => params[:credit_network]
+      }.to_json
+      response = HTTParty.post("#{API_URL_BASE}/api/v1/credit_card", {
+        :body => data,
+        :headers => {'Content-Type' => 'application/json', 'Accept' => 'application/json', 'authorization' => ('Bearer ' + user_jwt) }
+        })
+      if save.code == 201
+        flash[:notice] = 'Added Successfully!'
+      else
+        flash[:error] = 'Incorrect Card Number'
+      end
+      redirect '/'
+    rescue => e
+      logger.error(e)
+      halt 410
+    end
+  end
 
   get '/api/v1/credit_card/everything' do
+    result = HTTParty.get("#{API_URL_BASE}/api/v1/credit_card/everything/#{@current_user.id}")
+    @cc = result.parsed_response
     haml :everything#, locals: {result: CreditCard.all.map(&:to_s)    }
   end
 
