@@ -5,13 +5,13 @@ require "config_env"
 require 'rack-flash'
 require_relative './model/user.rb'
 require_relative './helpers/creditcard_helpers.rb'
-
-require_relative './model/credit_card.rb'
 require 'rack/ssl-enforcer'
 
 # Credit Card Web Service
 class CreditCardAPI < Sinatra::Base
   include CreditCardHelper
+  require 'hirb'
+  Hirb.enable
 
   enable :logging
 
@@ -86,11 +86,7 @@ class CreditCardAPI < Sinatra::Base
     end
   end
 
-  
-
   configure :development, :test do
-    require 'hirb'
-    Hirb.enable
     ConfigEnv.path_to_config("#{__dir__}/config/config_env.rb")
   end
 

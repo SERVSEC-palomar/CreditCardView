@@ -4,6 +4,8 @@ require 'jwt'
 #require 'pony' # not using pony here
 
 module CreditCardHelper
+	# API_URL = 'https://palomar-api.herokuapp.com/api/v1'
+	API_URL = 'http://127.0.0.1:9393/api/v1'
 	class Registration
 		attr_accessor :username, :password, :email, :dob, :address, :fullname
 
@@ -22,8 +24,17 @@ module CreditCardHelper
 	      (password && password.length > 0) &&
 	      (dob && dob.length > 0) &&
 	      (address && address.length > 0) &&
-	      (fullname && fullname.length > 0) 
+	      (fullname && fullname.length > 0)
 	    end
+	end
+
+	def user_jwt
+		jwt_payload = {
+			'iss' => 'https://palomar-api.herokuapp.com/',
+			'sub' => @current_user.id
+		}
+		jwt_key = OpenSSL::PKey::RSA.new(ENV['UI_PRIVATE_KEY'])
+		JWT.encode jwt_payload, jwt_key, 'RS256'
 	end
 
 	def email_registration_verification(registration)
@@ -97,4 +108,3 @@ module CreditCardHelper
 
 
 end
-
