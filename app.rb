@@ -50,6 +50,17 @@ class CreditCardAPI < Sinatra::Base
     flash[:notice] = 'You have been succesfully logged out.'
   end
 
+  register do
+    def auth(*types)
+      condition do
+        if (types.include? :user) && !@current_user
+          flash[:error] = 'You must be logged in to view that page'
+          redirect '/login'
+        end
+      end
+    end
+  end
+
   get '/register' do
     haml :register
     if token = params[:token]
@@ -84,7 +95,15 @@ class CreditCardAPI < Sinatra::Base
     end
   end
 
-  
+  get '/user/:username', :auth => [:user] do
+    username = params[:username]
+    unless username == @current_user.username
+      flash[:error] = 'You may only look at your own profile'
+      redirect '/'
+    end
+    
+    haml :profile
+  end
 
   configure :development, :test do
     require 'hirb'
