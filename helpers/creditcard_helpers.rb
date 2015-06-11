@@ -6,7 +6,7 @@ require 'httparty'
 #require 'pony' # not using pony here
 
 module CreditCardHelper
-	API_URL = 'https://palomar-api.herokuapp.com/api/v1'
+	API_URL = 'https://palomar-api.herokuapp.com/api/v1/'
 	# API_URL = 'http://127.0.0.1:9393/api/v1'
 
 	class Registration
