@@ -156,7 +156,7 @@ class CreditCardAPI < Sinatra::Base
         :body => data,
         :headers => {'Content-Type' => 'application/json', 'Accept' => 'application/json', 'authorization' => ('Bearer ' + user_jwt) }
         })
-      if save.code == 201
+      if response.code == 201
         flash[:notice] = 'Added Successfully!'
       else
         flash[:error] = 'Incorrect Card Number'
