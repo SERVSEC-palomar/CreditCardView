@@ -158,7 +158,12 @@ class CreditCardAPI < Sinatra::Base
 
   get '/credit_card/everything' do
     cards = api_everything
-    haml :everything, locals: {result: cards.body }
+    cards = cards.body.gsub('}{', '}}{{').split('}{')
+    cards = cards.map { |e| JSON.parse(e).to_a }
+    cards = cards.map do |variable|
+      variable.map { |_, f| f }
+    end
+    haml :everything, locals: {result: cards }
   end
 
 end

@@ -1,5 +1,10 @@
-%p
-  #{result}
+%table
+  %tbody
+  - result.each do |row|
+    %tr
+    - row.each do |col|
+      %td
+        = col
   %br
   Back to
   %a{ href: '/' }
