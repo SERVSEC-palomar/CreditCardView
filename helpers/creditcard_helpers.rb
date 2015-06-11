@@ -1,6 +1,8 @@
 # Created user login
 require 'rbnacl/libsodium'
 require 'jwt'
+require 'openssl'
+require 'httparty'
 #require 'pony' # not using pony here
 
 module CreditCardHelper

@@ -23,6 +23,8 @@ gem 'rack-ssl-enforcer'
 gem 'tux'
 gem 'hirb'
 
+gem 'httparty'
+
 group :development do
   gem 'sqlite3'
   gem 'shotgun'
