@@ -1,0 +1,7 @@
+%h2 Validate a credit card number
+%p
+  #{result}
+%form{ action: '/credit_card/validate', method: 'get', id: 'user-form' }
+  %label{ for: 'number' } Credit Card:
+  %input{ type: 'text', name: 'number', id: 'card_id' }
+  %input{ type: 'submit', id: 'validate-form-submit', value: 'submit' }

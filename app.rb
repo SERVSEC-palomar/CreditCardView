@@ -7,6 +7,10 @@ require_relative './model/user.rb'
 require_relative './helpers/creditcard_helpers.rb'
 require 'rack/ssl-enforcer'
 
+configure :development, :test do
+  ConfigEnv.path_to_config("#{__dir__}/config/config_env.rb")
+end
+
 # Credit Card Web Service
 class CreditCardAPI < Sinatra::Base
   include CreditCardHelper
@@ -23,6 +27,17 @@ class CreditCardAPI < Sinatra::Base
   configure do
     use Rack::Session::Cookie, secret: settings.session_secret
     use Rack::Flash, sweep: true
+  end
+
+  register do
+    def auth(*types)
+      condition do
+        if (types.include? :user) && !@current_user
+          flash[:error] = 'You must be logged in for that page'
+          redirect '/login'
+        end
+      end
+    end
   end
 
   before do
@@ -86,44 +101,64 @@ class CreditCardAPI < Sinatra::Base
     end
   end
 
-  configure :development, :test do
-    ConfigEnv.path_to_config("#{__dir__}/config/config_env.rb")
-  end
-
   get '/' do
     haml :index # "The CreditCardAPI service is running"
   end
 
-  get '/api/v1/credit_card/?' do
-    logger.info('FEATURES')
-    'TO date, services offered include<br>' \
-    ' GET api/v1/credit_card/validate?card_number=[card number]<br>' \
-    ' GET <a href="/api/v1/credit_card/everything"> Numbers </a> '
+  get '/user/:username', :auth => [:user] do
+    username = params[:username]
+    unless username == @current_user.username
+      flash[:error] = "You may only look at your own profile"
+      redirect '/'
+    end
+
+    haml :profile
   end
 
-  get '/api/v1/credit_card/validate' do
-    card = CreditCard.new(number: params[:card_number])
-    {"Card" => params[:card_number], "validated" => card.validate_checksum}.to_json
+  get '/credit_card/?', :auth => [:user] do
+    haml :register_cards
+    # 'TO date, services offered include<br>' \
+    # ' GET api/v1/credit_card/validate?card_number=[card number]<br>' \
+    # ' GET <a href="/api/v1/credit_card/everything"> Numbers </a> '
   end
 
-  post '/api/v1/credit_card' do
-    card_json = JSON.parse(request.body.read)
+  get '/credit_card/validate', :auth => [:user] do
+    if params[:number]
+      begin
+        number = params[:number]
+        save = api_validate(number)
+        haml :validate, locals: { result: save.body }
+      rescue => e
+        logger.error(e)
+        halt 410
+      end
+    else
+      haml :validate, locals: { result: '' }
+    end
+  end
+
+  post '/credit_card', :auth => [:user] do
     begin
-      number = card_json['number']
-      credit_network = card_json['credit_network']
-      expiration_date = card_json['expiration_date']
-      owner = card_json['owner']
-      card = CreditCard.new(number: number, credit_network: credit_network,
-                            owner: owner, expiration_date: expiration_date)
-      halt 400 unless card.validate_checksum
-      status 201 if card.save
-    rescue
+      number = params[:number]
+      credit_network = params[:credit_network]
+      expiration_date = params[:expiration_date]
+      owner = params[:owner]
+      register = api_register(owner, expiration_date, credit_network, number)
+      if register.code == 201
+        flash[:notice] = 'Card registerd'
+      else
+        flash[:error] = 'Check card number'
+      end
+      redirect '/'
+    rescue => e
+      logger.error(e)
       halt 410
     end
   end
 
-  get '/api/v1/credit_card/everything' do
-    haml :everything, locals: {result: CreditCard.all.map(&:to_s)    }
+  get '/credit_card/everything' do
+    cards = api_everything
+    haml :everything, locals: {result: cards.body }
   end
 
 end

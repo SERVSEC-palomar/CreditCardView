@@ -1,0 +1,15 @@
+%h2 Register A Card
+%form{ action: '/credit_card', method: 'post', id: 'card-form' }
+  %label{ for: 'owner' } Name on Card:
+  %input{ type: 'text', name: 'owner', id: 'onwer_input' }
+  %br
+  %label{ for: 'expiration_date' } Expiration Date:
+  %input{ type: 'date', name: 'expiration_date', id: 'expiration_date_input' }
+  %br
+  %label{ for: 'credit_network' } Credit Network:
+  %input{ type: 'text', name: 'credit_network', id: 'credit_network_input' }
+  %br
+  %label{ for: 'number' } Number:
+  %input{ type: 'text', name: 'number', id: 'number_input' }
+  %br
+  %input{ type: 'submit', id: 'card-form-submit', value: 'submit' }
