@@ -31,7 +31,6 @@ GEM
       mime-types (>= 1.16, < 3)
     mime-types (2.5)
     minitest (5.6.1)
-    openssl (1.0.0.beta)
     pg (0.18.1)
     pony (1.11)
       mail (>= 2.0)
@@ -93,7 +92,6 @@ DEPENDENCIES
   json
   jwt
   minitest
-  openssl
   pg
   pony
   protected_attributes
