@@ -25,6 +25,9 @@ gem 'hirb'
 
 gem 'httparty'
 
+gem 'dalli'
+gem 'activesupport'
+
 group :development do
   gem 'sqlite3'
   gem 'shotgun'

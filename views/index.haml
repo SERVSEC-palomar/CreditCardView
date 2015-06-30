@@ -9,3 +9,5 @@
   %li
     %a{ href: '/credit_card/validate' }
       Validate a card number
+- if @current_user
+  = haml :everything, locals: { result: result }

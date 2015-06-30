@@ -1,11 +1,12 @@
 ### MAIN
-require "sinatra"
-require "json"
-require "config_env"
+require 'sinatra'
+require 'json'
+require 'config_env'
 require 'rack-flash'
 require_relative './model/user.rb'
 require_relative './helpers/creditcard_helpers.rb'
 require 'rack/ssl-enforcer'
+require 'dalli'
 
 configure :development, :test do
   ConfigEnv.path_to_config("#{__dir__}/config/config_env.rb")
@@ -27,6 +28,14 @@ class CreditCardAPI < Sinatra::Base
   configure do
     use Rack::Session::Cookie, secret: settings.session_secret
     use Rack::Flash, sweep: true
+
+    set :ops_cache,
+        Dalli::Client.new((ENV['MEMCACHIER_SERVERS'] || '').split(','),
+                          username: ENV['MEMCACHIER_USERNAME'],
+                          password: ENV['MEMCACHIER_PASSWORD'],
+                          socket_timeout: 1.5,
+                          socket_failure_delay: 0.2
+                         )
   end
 
   register do
@@ -58,7 +67,31 @@ class CreditCardAPI < Sinatra::Base
       flash[:error] = 'User does not exists. <a href="/register"> Register here</a>'
       redirect '/login'
     end
+  end
 
+  get '/gh_callback' do
+    result = HTTParty.post(
+      'https://github.com/login/oauth/access_token',
+      body: { client_id: ENV['CLIENT_ID'], code: params['code'],
+              client_secret: ENV['CLIENT_SECRET'] },
+      headers: { 'Accept' => 'application/json' }
+    )
+    ind, links = Float, ['', '/emails']
+    a, b = git_get_info(links, result['access_token'])
+    b.each_with_index do |email, idx|
+      ind = idx if email['primary'] == true && email['verified'] == true
+    end
+    if ind.class == Class
+      flash[:error] = 'Please verify your github primary email address!'
+      return redirect '/login'
+    end
+    login, email = a['login'], b[ind]['email']
+    if User.find_by_email(email)
+      user = User.find_by_email(email)
+      return login_user(user)
+    else
+      create_git_registration(login, email)
+    end
   end
 
   get '/logout' do
@@ -102,7 +135,8 @@ class CreditCardAPI < Sinatra::Base
   end
 
   get '/' do
-    haml :index # "The CreditCardAPI service is running"
+    cards = memcache if @current_user
+    haml :index, locals: { result: cards }
   end
 
   get '/user/:username', :auth => [:user] do
@@ -156,14 +190,13 @@ class CreditCardAPI < Sinatra::Base
     end
   end
 
-  get '/credit_card/everything' do
-    cards = api_everything
-    cards = cards.body.gsub('}{', '}}{{').split('}{')
-    cards = cards.map { |e| JSON.parse(e).to_a }
-    cards = cards.map do |variable|
-      variable.map { |_, f| f }
+  get '/credit_card/everything', auth: [:user] do
+    begin
+      cards = memcache
+      haml :my_cards, locals: { result: cards }
+    rescue => e
+      logger.error(e)
+      halt 410
     end
-    haml :everything, locals: {result: cards }
   end
-
 end

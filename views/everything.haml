@@ -2,6 +2,6 @@
   %tbody
   - result.each do |row|
     %tr
-    - row.each do |col|
+    - JSON.parse(row).map do |_, y|
       %td
-        = col
+        = y

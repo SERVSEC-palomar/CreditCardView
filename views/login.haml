@@ -7,3 +7,5 @@
   %input{ type: 'password', name: 'password', id: 'password_input' }
   %br
   %input{ type: 'submit', id: 'login-form-submit', value: 'submit' }
+%a{ href: "https://github.com/login/oauth/authorize?client_id=#{ENV['CLIENT_ID']}&scope=user:email" }
+  Login with Github

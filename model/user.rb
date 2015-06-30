@@ -5,13 +5,14 @@ require 'rbnacl/libsodium'
 require 'base64'
 require 'json'
 
+# Some documentation
 class User < ActiveRecord::Base
-  validates :username, presence: true, uniqueness: true
+  validates :username, presence: true # , uniqueness: true
   validates :hashed_password, presence: true
   validates :email, presence: true, format: /@/
-  validates :encrypted_fullname, presence: true
-  validates :encrytped_address, presence: true
-  validates :encrypted_dob, presence: true
+  # validates :encrypted_fullname, presence: true
+  # validates :encrytped_address, presence: true
+  # validates :encrypted_dob, presence: true
 
   attr_accessible :username, :email
 
@@ -45,17 +46,17 @@ class User < ActiveRecord::Base
   end
 
   def enc
-      secret_box = RbNaCl::SecretBox.new(key)
-      #@variable is instance variable, available to all methods in class
-      @nonce = RbNaCl::Random.random_bytes(secret_box.nonce_bytes)
-      #ciphertext = secret_box.encrypt(nonce, params_str)
-      self.nonce = Base64.urlsafe_encode64(@nonce)
-      #self.encrypted_number = Base64.urlsafe_encode64(ciphertext)
-      secret_box 
+    secret_box = RbNaCl::SecretBox.new(key)
+    # @variable is instance variable, available to all methods in class
+    @nonce = RbNaCl::Random.random_bytes(secret_box.nonce_bytes)
+    # ciphertext = secret_box.encrypt(nonce, params_str)
+    self.nonce = Base64.urlsafe_encode64(@nonce)
+    # self.encrypted_number = Base64.urlsafe_encode64(ciphertext)
+    secret_box
   end
 
   def dec
-    secret_box = RbNaCl::SecretBox.new(key)
+    RbNaCl::SecretBox.new(key)
   end
 
   def dob=(params)
@@ -98,5 +99,4 @@ class User < ActiveRecord::Base
   def to_s
     self.to_json
   end
-
 end
